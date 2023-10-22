@@ -12,8 +12,10 @@ OpenSSH (Can run on Windows/MacOS but primarily tested and documented for Linux)
 Mosquitto (Can run on Windows/MacOS but primarily tested and documented for Linux)
 
 ## Setup 
-An SSH FTP (SFTP) server must first be created. 
-q1
+1) An SSH FTP (SFTP) server must first be created. 
+2) Keypairs must then be generated for the IoT device, SFTP server, and the MQTT broker.
+3) Enable Public Key authentication on the SFTP server.
+4) Setup the MQTT broker.
 
 ## Installation
 
@@ -49,13 +51,25 @@ Testing Connection:
 On another device use the command `sftp test@server_ip`
  
 ### PKI Key Generation
-On the IoT Device, generate or use the pre-generated key pairs. 
-If generating key pairs, use command: 
+On the IoT Device, generate the key pairs. 
 `ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_iot`
-If using the pre-generated key pairs, move the id_rsa_iot.pub file from the repo to `~/.ssh/`.
 
 Send the public key (id_rsa_iot.pub) to the SFTP server using this command:
 `scp ~/.ssh/id_rsa_iot.pub test@your_server_ip:/home/test/` where "test" is the SFTP username created.
+
+Now SSH to the SFTP file server and add the public key to the authorized_key file.
+```
+ssh test@serverIP
+cat id_rsa_iot.pub >> ~/.ssh/authorized_keys
+```
+Enable Public Key authentication by modifying the sshd_config on the SFTP server:
+`sudo vi/vim/nano /etc/ssh/sshd_config` 
+Uncomment the line `#PubkeyAuthentication yes`.
+Restart the SFTP server
+`sudo systemctl restart sshd`
+Test the PKI implementation by SSH from the IoT device to the SFTP server:
+`ssh -i ~/.ssh/id_rsa_iot test@serverIP`
+
 
 ## Issues
 If you have any Permission denied messages when moving/sending/copying files, make sure the directories and files have proper permissions. Permissions can be changed with chmod `chmod -v -r 755 ./fileOrdirectory` for example.
