@@ -1,1 +1,0 @@
-# this script is to test MQTT broker functionality using paho-mqtt library

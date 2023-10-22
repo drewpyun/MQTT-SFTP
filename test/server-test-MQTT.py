@@ -1,1 +1,0 @@
-# this script is to test MQTT server side functionality using paho-mqtt library
