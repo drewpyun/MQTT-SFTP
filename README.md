@@ -13,33 +13,46 @@ Mosquitto (Can run on Windows/MacOS but primarily tested and documented for Linu
 
 ## Setup 
 An SSH FTP (SFTP) server must first be created. 
+q1
 
-
-## Installation:
+## Installation
 
 ### Installing OpenSSH Server:
+```
 sudo apt/dnf/etc. install openssh-server
 sudo systemctl enable sshd
 sudo systemctl start sshd
 sudo systemctl status sshd
+```
 
 Creating SFTP User (Replace "test" with your desired username):
+```
 sudo adduser test
 sudo passwd test
-
+```
 Configuring SSH for SFTP:
+```
 sudo vi/vim/nano /etc/ssh/sshd_config
+```
 Please configure the SSH for your own use. 
 For testing I only put the lines below to prevent root access from user "test:
+```
 Match User test
 ForceCommand internal-sftp
-
+```
 Restart SSH Service after configuration:
+```
 sudo systemctl restart sshd
 sudo systemctl status sshd
-
+```
 Testing Connection:
-On another device use the command "sftp test@server_ip"
-
+On another device use the command `sftp test@server_ip`
+ 
 ### PKI Key Generation
+On the IoT Device, generate or use the pre-generated key pairs. 
+If generating key pairs, use command: `ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_iot`
+If using the pre-generated key pairs, move the id_rsa_iot.pub to ~/.ssh/.
+
+Send the public key (id_rsa_iot.pub) to the SFTP server using this command:
+scp ~/.ssh/id_rsa_iot.pub test@your_server_ip:/home/test/ where "test" is the SFTP username created.
 
