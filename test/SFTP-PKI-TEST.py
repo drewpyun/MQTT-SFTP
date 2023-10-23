@@ -1,5 +1,6 @@
 import json
 import os
+import paramiko
 
 config_file = 'sftp_config.json'
 
@@ -51,4 +52,17 @@ username = get_config('username of the SFTP server', 'username')
 password = get_config('password of the SFTP server', 'password')
 private_key_path = get_config('path of the private key', 'private_key_path', default_value='~/.ssh/')
 
-print(f"Selected configurations: IP: {ip}, Username: {username}, Password: {password}, Private Key Path: {private_key_path}")
+# Connect to the SFTP server
+try:
+    private_key = paramiko.RSAKey(filename=private_key_path)
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    ssh.connect(ip, username=username, pkey=private_key)
+    sftp = ssh.open_sftp()
+    response = sftp.listdir()
+    print("SFTP connection established using PKI")
+    print(f"List of files and directories: {response}")
+    sftp.close()
+    ssh.close()
+except Exception as e:
+    print(f"An error occurred: {e}")
