@@ -1,71 +1,67 @@
-import json
-import os
-import paramiko
+import paramiko  # Import the Paramiko library for SSH and SFTP
+from getpass import getpass  # Import the getpass library for securely entering passwords
 
-config_file = 'sftp_config.json'
+# Initialize the SSH client
+ssh = paramiko.SSHClient()  # Create an SSH client object
+ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # Auto-add the server's public key
 
-def load_config():
-    if os.path.exists(config_file):
-        with open(config_file, 'r') as f:
-            return json.load(f)
-    return {'ip': [], 'username': [], 'password': [], 'private_key_path': []}
+# Initialize a flag for successful authentication
+authentication_success = False
 
-def save_config(config):
-    with open(config_file, 'w') as f:
-        json.dump(config, f, indent=4)
-
-config = load_config()
-
-def get_config(prompt, key):
-    while True:
-        print(f"What is the {prompt}?")
-        for index, value in enumerate(config[key]):
-            print(f"{index + 1}) {value}")
-        print(f"{len(config[key]) + 1}) Add new {prompt}")
-
-        choice_str = input("Enter your choice: ")
-
-        try:
-            choice = int(choice_str)
-            if choice == len(config[key]) + 1:
-                new_value = input(f"Enter new {prompt}: ")
-                config[key].append(new_value)
-                save_config(config)
-                return new_value
-            else:
-                return config[key][choice - 1]
-        except (ValueError, IndexError):
-            print("Invalid choice, please try again.")
-
-ip = get_config('IP of the SFTP server', 'ip')
-username = get_config('username of the SFTP server', 'username')
-password = get_config('password of the SFTP server', 'password')
-private_key_path = get_config('path of the private key', 'private_key_path')
+# Collect user input for server connection details
+server_ip = input("Please enter the server IP: ")  # Server IP address
+username = input("Please enter the username: ")  # SSH username
+private_key_path = input("Please enter the path to your private key: ")  # Path to the private SSH key
 
 try:
-    ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+    # First Authentication Attempt: Without passphrase
+    # Load the private key from the provided file path
+    private_key = paramiko.RSAKey(filename=private_key_path)
+    # Use the private key to attempt SSH connection
+    ssh.connect(server_ip, username=username, pkey=private_key)
+    # If successful, print a message and update the flag
+    print("Successfully authenticated using PKI without passphrase.")
+    authentication_success = True
+
+except paramiko.AuthenticationException:
+    # Handle case where the first authentication attempt fails
+    print("Authentication failed without passphrase. Please enter passphrase for your key.")
+    # Ask for the passphrase for the private key
+    key_passphrase = getpass("Enter the passphrase for your key: ")
 
     try:
-        private_key = paramiko.RSAKey(filename=private_key_path)
-        ssh.connect(ip, username=username, pkey=private_key)
-        print("Connected using key-based authentication.")
-    except paramiko.PasswordRequiredException:
-        passphrase = input("Enter the passphrase for the private key: ")
-        private_key = paramiko.RSAKey(filename=private_key_path, password=passphrase)
-        ssh.connect(ip, username=username, pkey=private_key)
-        print("Connected using key-based authentication with passphrase.")
-    except Exception as e:
-        print(f"Failed to use key-based authentication: {e}")
-        ssh.connect(ip, username=username, password=password)
-        print("Connected using password-based authentication.")
+        # Second Authentication Attempt: With passphrase
+        # Load the private key again, this time with the passphrase
+        private_key = paramiko.RSAKey(filename=private_key_path, password=key_passphrase)
+        # Re-attempt the SSH connection with the passphrase
+        ssh.connect(server_ip, username=username, pkey=private_key)
+        # If successful, print a message and update the flag
+        print("Successfully authenticated using PKI with passphrase.")
+        authentication_success = True
+    
+    except paramiko.AuthenticationException:
+        # Handle case where both authentication attempts fail
+        print("Authentication failed again, even with passphrase. Please check your credentials or PKI setup.")
 
-    sftp = ssh.open_sftp()
-    current_directory = sftp.getcwd()
-    response = sftp.listdir()
-    print(f"SFTP connection established using PKI")
-    print(f"List of files and directories in {current_directory}: {response}")
-    sftp.close()
-    ssh.close()
+except paramiko.SSHException as e:
+    # Handle general SSH exceptions
+    print(f"SSH error: {e}")
+
 except Exception as e:
-    print(f"An error occurred: {e}")
+    # Handle other unexpected exceptions
+    print(f"An unexpected error occurred: {e}")
+
+# Check if any authentication was successful
+if authentication_success:
+    # Open an SFTP session on the already-established SSH connection
+    sftp = ssh.open_sftp()
+    # Create an empty file named 'PKI-Test' on the remote server
+    with sftp.file('PKI-Test', 'w') as f:
+        f.write('')
+    # Confirm that the file was created
+    print("Successfully created an empty file named 'PKI-Test' on the SFTP server.")
+    # Close the SFTP session
+    sftp.close()
+
+# Close the SSH connection regardless of outcome
+ssh.close()
