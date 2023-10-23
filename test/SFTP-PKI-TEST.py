@@ -20,20 +20,15 @@ def save_config(config):
 config = load_config()
 
 # Function to get configuration from the user
-def get_config(prompt, key, default_value=None):
+def get_config(prompt, key):
     while True:
         print(f"What is the {prompt}?")
         for index, value in enumerate(config[key]):
             print(f"{index + 1}) {value}")
         print(f"{len(config[key]) + 1}) Add new {prompt}")
-        if default_value:
-            print(f"(Press Enter for default path: {default_value})")
         
         choice_str = input("Enter your choice: ")
         
-        if default_value and choice_str == '':
-            return default_value
-
         try:
             choice = int(choice_str)
             if choice == len(config[key]) + 1:
@@ -50,11 +45,16 @@ def get_config(prompt, key, default_value=None):
 ip = get_config('IP of the SFTP server', 'ip')
 username = get_config('username of the SFTP server', 'username')
 password = get_config('password of the SFTP server', 'password')
-private_key_path = get_config('path of the private key', 'private_key_path', default_value='~/.ssh/')
+private_key_path = get_config('path of the private key', 'private_key_path')
 
 # Connect to the SFTP server
 try:
-    private_key = paramiko.RSAKey(filename=private_key_path)
+    try:
+        private_key = paramiko.RSAKey(filename=private_key_path)
+    except paramiko.PasswordRequiredException:
+        passphrase = input("Enter the passphrase for the private key: ")
+        private_key = paramiko.RSAKey(filename=private_key_path, password=passphrase)
+        
     ssh = paramiko.SSHClient()
     ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     ssh.connect(ip, username=username, pkey=private_key)
