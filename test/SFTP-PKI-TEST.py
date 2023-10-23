@@ -49,18 +49,22 @@ try:
     try:
         private_key = paramiko.RSAKey(filename=private_key_path)
         ssh.connect(ip, username=username, pkey=private_key)
+        print("Connected using key-based authentication.")
     except paramiko.PasswordRequiredException:
         passphrase = input("Enter the passphrase for the private key: ")
         private_key = paramiko.RSAKey(filename=private_key_path, password=passphrase)
         ssh.connect(ip, username=username, pkey=private_key)
+        print("Connected using key-based authentication with passphrase.")
     except Exception as e:
         print(f"Failed to use key-based authentication: {e}")
         ssh.connect(ip, username=username, password=password)
+        print("Connected using password-based authentication.")
 
     sftp = ssh.open_sftp()
+    current_directory = sftp.getcwd()
     response = sftp.listdir()
-    print("SFTP connection established using PKI")
-    print(f"List of files and directories: {response}")
+    print(f"SFTP connection established using PKI")
+    print(f"List of files and directories in {current_directory}: {response}")
     sftp.close()
     ssh.close()
 except Exception as e:
