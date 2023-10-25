@@ -51,7 +51,20 @@ sudo systemctl status sshd
 ```
 Testing Connection:
 On another device use the command `sftp test@server_ip`
- 
+
+### Installing the MQTT Broker:
+```
+sudo apt/dnf/etc. install mosquitto
+sudo systemctl enable mosquitto
+sudo systemctl start mosquitto
+sudo systemctl status mosquitto
+```
+
+Testing MQTT functionality
+```
+```
+
+
 ### IoT <-> SFTP PKI Key Generation
 On the IoT Device, generate the key pairs. 
 `ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_iot`
@@ -72,6 +85,11 @@ Restart the SFTP server
 Test the PKI implementation by SSH from the IoT device to the SFTP server:
 `ssh -i ~/.ssh/id_rsa_iot test@serverIP`
 Test the PKI implementation by running the `SFTP-PKI-TEST.py` file in the test subdirectory.
+
+### IoT <-> MQTT PkI Key Generation
+On the MQTT Broker, generate the key pairs
+`ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_mqtt`
+
 
 ## Issues
 If you have any Permission denied messages when moving/sending/copying files, make sure the directories and files have proper permissions. Permissions can be changed with chmod `chmod -v -r 755 ./fileOrdirectory` for example.
