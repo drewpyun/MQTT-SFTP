@@ -123,8 +123,20 @@ Restart the Mosquitto server `sudo systemctl restart mosquitto`
 Check the status of the server `sudo systemctl status mosquitto`
 
 To test MQTT using TLS 1.3:
-Send the 
+Send the self-signed certificate to the IoT device. I used SCP.
+`scp /etc/mosquitto/certs/mqtt_server.crt iot_username@iot_ip:/home/iot_username`
+
+On the MQTT Broker device, subscribe to a topic using the self-signed CA file. 
+Because it is self-signed, we have to use the `--insecure` flag.
+`mosquitto_sub -h localhost -p 8883 -t test/topic/pki --cafile /etc/mosquitto/certs/mqtt_server.crt --insecure`
+
+On the IoT device, publish to that same topic.
+`mosquitto_pub -h mqtt_ip -p 8883 -t test/topic/pki -m "Hello PKI!" --cafile path/to/mqtt_server.crt --insecure`
+The message should populate on the MQTT Broker device.
+
+### 
 
 ## Issues 
 If you have any Permission denied messages when moving/sending/copying files, make sure the directories and files have proper permissions. Permissions can be changed with chmod `chmod -v -r 755 ./fileOrdirectory` for example.
 Mosquitto does not read certificates in home directory. Make sure to put them in another directory like /etc/mosquitto/certs for example, and assign the proper permissions. By default, let user "mosquitto:mosquitto" allow to read the cert files.
+Since we are using self-signed certificates for the MQTT Broker, we have to use the `--insecure` flag to bypass certificate verification.
