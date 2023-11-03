@@ -1,142 +1,215 @@
-# MQTT-SFTP
+# MQTT-SFTP Integration Project
 
 ## Introduction
-This is a Project to utilize both MQTT and SSH FTP (SFTP) protocols to allow for secure file exchanges over MQTT.
-This project utilizes the popular OpenSSH suite to handle SFTP client-server functionality, and Mosquitto for the local MQTT Broker.
-This project will also utilize Public Key Infrastructure between the IoT Device and MQTT Broker, as well as the MQTT Broker and the SFTP Server. Three pairs of PKI Certs are required and pre-generated for testing purposes. Please do not use this implementation as-is for production networks.
 
-
+This project integrates MQTT and SSH File Transfer Protocol (SFTP) to facilitate secure file exchanges over MQTT. It utilizes OpenSSH for SFTP functionalities and Mosquitto as the MQTT broker. The architecture also incorporates Public Key Infrastructure (PKI) to ensure secure connections between an IoT device, the MQTT broker, and the SFTP server. This repository includes pre-generated key pairs for testing purposes. However, this setup is not recommended for production environments without further security measures.
 
 ## Requirements
-Python 3.11.0-6 (untested on other verisons such as 3.10.- or 3.12.-)
-OpenSSH (Can run on Windows/MacOS but primarily tested and documented for Linux)
-OpenSSL (Can run on Windows/MacOS but primarily tested and documented for Linux)
-Mosquitto (Can run on Windows/MacOS but primarily tested and documented for Linux)
-All python packages can be installed using the requirements.txt file using `sudo pip install -r requirements.txt`
+
+- Python 3.11.0-6 (Compatibility with other versions such as 3.10.x or 3.12.x is not tested)
+- OpenSSH (Primarily tested on Linux; Windows and macOS versions exist but are not covered here)
+- OpenSSL (Primarily tested on Linux; Windows and macOS versions exist but are not covered here)
+- Mosquitto (Primarily tested on Linux; Windows and macOS versions exist but are not covered here)
+- Install all Python packages using the `requirements.txt` file with `sudo pip install -r requirements.txt`
 
 ## Setup 
-1) An SSH FTP (SFTP) server must first be created. 
-2) Keypairs must then be generated for the IoT device, SFTP server, and the MQTT broker.
-3) Enable Public Key authentication on the SFTP server.
-4) Setup the MQTT broker.
 
-## Installation
+### OpenSSH Server Installation:
 
-### Installing OpenSSH Server:
-```
-sudo apt/dnf/etc. install openssh-server
-sudo systemctl enable sshd
-sudo systemctl start sshd
-sudo systemctl status sshd
-```
+1. Install OpenSSH Server and enable the `sshd` service:
 
-Creating SFTP User (Replace "test" with your desired username):
-```
-sudo adduser test
-sudo passwd test
-```
-Configuring SSH for SFTP:
-```
-sudo vi/vim/nano /etc/ssh/sshd_config
-```
-Please configure the SSH for your own use. 
-For testing I only put the lines below to prevent root access from user "test":
-```
-Match User test
-ForceCommand internal-sftp
-```
-Restart SSH Service after configuration:
-```
-sudo systemctl restart sshd
-sudo systemctl status sshd
-```
-Testing Connection:
-On another device use the command `sftp test@server_ip`
+    ```bash
+    sudo apt/dnf install openssh-server
+    sudo systemctl enable --now sshd
+    ```
 
-### Installing Mosquitto 
-For this project, we will be using Mosquitto as the MQTT Broker.
-On BOTH the MQTT Broker device and the IoT device, install Mosquitto using these commands: 
-```
-sudo apt/dnf/etc. install mosquitto
-sudo systemctl enable mosquitto
-sudo systemctl start mosquitto
-sudo systemctl status mosquitto
-```
-To configure the MQTT Broker, on the MQTT Broker device, edit the mosquitto configuration file:
-`sudo vi/vim/nano /etc/mosquitto/mosquitto.conf`
-For testing purposes, allow anonymous login by changing the line `# allow_anonymous` to `allow_anonymous true`
-To route over the local IP network (it is localhost on default) add the line `bind_address 0.0.0.0` under the "Listeners" section
-To test, we need the MQTT Broker device to listen to a topic, and the IoT device to publish to a topic.
-On the MQTT Broker device run this command: `mosquitto_sub -h localhost -t "test/topic"`
-On the IoT Device run this command: `mosquitto_pub -h broker_ip -t "test/topic" -m "hi world!"`
+2. Create a dedicated SFTP user (replace "test" with the desired username):
 
-### IoT <-> SFTP PKI Key Generation
-On the IoT Device, generate the key pairs. 
-`ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_iot`
+    ```bash
+    sudo adduser test
+    sudo passwd test
+    ```
 
-Send the public key (id_rsa_iot.pub) to the SFTP server using this command:
-`scp ~/.ssh/id_rsa_iot.pub test@your_server_ip:/home/test/` where "test" is the SFTP username created.
+3. Configure SSH for SFTP usage:
 
-Now SSH to the SFTP file server and add the public key to the authorized_key file.
-```
-ssh test@serverIP
-cat id_rsa_iot.pub >> ~/.ssh/authorized_keys
-```
-Enable Public Key authentication by modifying the sshd_config on the SFTP server:
-`sudo vi/vim/nano /etc/ssh/sshd_config` 
-Uncomment the line `#PubkeyAuthentication yes`.
-Restart the SFTP server
-`sudo systemctl restart sshd`
-Test the PKI implementation by SSH from the IoT device to the SFTP server:
-`ssh -i ~/.ssh/id_rsa_iot test@serverIP`
-Test the PKI implementation by running the `SFTP-PKI-TEST.py` file in the test subdirectory.
+    Edit the SSHD configuration to enforce SFTP and disable SSH shell access for the user "test":
 
-### IoT <-> MQTT Broker Key Generation
-On the MQTT Broker device, generate the private X.509 key for TLS 1.3
-`openssl genpkey -algorithm RSA -out mqtt_server.key`
-Next, generate the certificate request using the private key
-`openssl req -new -key mqtt_server.key -out mqtt_server.csr`
-Finally, create the self-signed certificate using the private key and the certificate request.
-Note: This is only recommended for a test environemnt. For a production environment, you should have your certificate signed by a certificate authority (CA).
-`openssl x509 -req -days 365 -in mqtt_server.csr -signkey mqtt_server.key -out mqtt_server.crt`
-After generation of the X.509 .key, the certificate request .csr, and the self-signed certificate .crt, move them to /etc/mosquitto/certs/
-```
-sudo mkdir /etc/mosquitto/certs/
-mv mqtt_server.key /etc/mosquitto/certs/
-mv mqtt_server.csr /etc/mosquitto/certs/
-mv mqtt_server.cst /etc/mosquitto/certs/
-```
-Make sure they have the proper permissions for the default Mosquitto user to read.
-```
-sudo chown mosquitto:mosquitto /etc/mosquitto/certs/
-sudo chmod 400 /etc/mosquitto/certs/mqtt_server.key
-sudo chmod 444 /etc/mosquitto/certs/mqtt_server.crt
-```
-Next, configure Mosquitto to use the key and the self-signed certificate.
+    ```bash
+    sudo nano /etc/ssh/sshd_config
+    ```
 
-`sudo vi/vim/nano /etc/mosquitto/mosquitto.conf`
-Uncomment `#listener` to `listener 8883 ` to listen on port 8883. (Recommended for TLS)
-Uncomment `#certfile` to `certfile /etc/mosquitto/certs/mqtt_server.crt`
-Uncomment `#keyfile` to `keyfile /etc/mosquitto/certs/mqtt_server.key`
+    Add or modify the following lines:
 
-Restart the Mosquitto server `sudo systemctl restart mosquitto`
-Check the status of the server `sudo systemctl status mosquitto`
+    ```
+    Match User test
+    ForceCommand internal-sftp
+    ```
 
-To test MQTT using TLS 1.3:
-Send the self-signed certificate to the IoT device. I used SCP.
-`scp /etc/mosquitto/certs/mqtt_server.crt iot_username@iot_ip:/home/iot_username`
+    Restart the SSH service to apply changes:
 
-On the MQTT Broker device, subscribe to a topic using the self-signed CA file. 
-Because it is self-signed, we have to use the `--insecure` flag.
-`mosquitto_sub -h localhost -p 8883 -t test/topic/pki --cafile /etc/mosquitto/certs/mqtt_server.crt --insecure`
+    ```bash
+    sudo systemctl restart sshd
+    ```
 
-On the IoT device, publish to that same topic.
-`mosquitto_pub -h mqtt_ip -p 8883 -t test/topic/pki -m "Hello PKI!" --cafile path/to/mqtt_server.crt --insecure`
-The message should populate on the MQTT Broker device.
+4. Test the SFTP connection from another machine:
 
-### 
+    ```bash
+    sftp test@server_ip
+    ```
+
+### Mosquitto Installation and Configuration:
+
+1. Install Mosquitto on both the MQTT broker and IoT device:
+
+    ```bash
+    sudo apt/dnf install mosquitto
+    sudo systemctl enable --now mosquitto
+    ```
+
+2. Edit the Mosquitto configuration file to set up the broker, allowing anonymous connections and binding to all network interfaces:
+
+    ```bash
+    sudo nano /etc/mosquitto/mosquitto.conf
+    ```
+
+    Add or modify the following lines:
+
+    ```
+    allow_anonymous true
+    bind_address 0.0.0.0
+    ```
+
+3. Test the MQTT broker by subscribing to a topic on the broker and publishing from the IoT device:
+
+    - On the MQTT broker:
+
+    ```bash
+    mosquitto_sub -h localhost -t "test/topic"
+    ```
+
+    - On the IoT device:
+
+    ```bash
+    mosquitto_pub -h broker_ip -t "test/topic" -m "hi world!"
+    ```
+
+### PKI Setup for IoT and SFTP Communication:
+
+1. Generate RSA key pairs on the IoT device:
+
+    ```bash
+    ssh-keygen -t rsa -b 4096 -f ~/.ssh/id_rsa_iot
+    ```
+
+2. Copy the public key to the SFTP server:
+
+    ```bash
+    scp ~/.ssh/id_rsa_iot.pub test@your_server_ip:/home/test/
+    ```
+
+3. On the SFTP server, append the IoT device's public key to the `authorized_keys`:
+
+    ```bash
+    ssh test@serverIP 'cat >> ~/.ssh/authorized_keys' < ~/.ssh/id_rsa_iot.pub
+    ```
+
+4. Enable public key authentication and restart the SSH service:
+
+    ```bash
+    sudo nano /etc/ssh/sshd_config
+    ```
+
+    Uncomment or add:
+
+    ```
+    PubkeyAuthentication yes
+    ```
+
+    Then restart the SSH service:
+
+    ```bash
+    sudo systemctl restart sshd
+    ```
+
+5. Test the PKI setup by connecting to the SFTP server from the IoT device:
+
+    ```bash
+    ssh -i ~/.ssh/id_rsa_iot test@serverIP
+    ```
+
+### PKI Setup for IoT and MQTT Broker Communication:
+
+1. On the MQTT Broker, generate the X.509 key for TLS 1.3:
+
+    ```bash
+    openssl genpkey -algorithm RSA -out mqtt_server.key
+    ```
+
+2. Create the certificate request:
+
+    ```bash
+    openssl req -new -key mqtt_server.key -out mqtt_server.csr
+    ```
+
+3. Generate a self-signed certificate
+
+ (for testing purposes):
+
+    ```bash
+    openssl x509 -req -days 365 -in mqtt_server.csr -signkey mqtt_server.key -out mqtt_server.crt
+    ```
+
+4. Move the generated files to the Mosquitto certificates directory and adjust permissions:
+
+    ```bash
+    sudo mv mqtt_server.key mqtt_server.csr mqtt_server.crt /etc/mosquitto/certs/
+    sudo chown mosquitto:mosquitto /etc/mosquitto/certs/*
+    sudo chmod 400 /etc/mosquitto/certs/mqtt_server.key
+    sudo chmod 444 /etc/mosquitto/certs/mqtt_server.crt
+    ```
+
+5. Configure Mosquitto to use TLS and restart the service:
+
+    ```bash
+    sudo nano /etc/mosquitto/mosquitto.conf
+    ```
+
+    Add:
+
+    ```
+    listener 8883
+    certfile /etc/mosquitto/certs/mqtt_server.crt
+    keyfile /etc/mosquitto/certs/mqtt_server.key
+    ```
+
+    Restart Mosquitto:
+
+    ```bash
+    sudo systemctl restart mosquitto
+    ```
+
+6. Test MQTT over TLS by subscribing on the broker and publishing from the IoT device:
+
+    - On the broker:
+
+    ```bash
+    mosquitto_sub -h localhost -p 8883 -t test/topic/pki --cafile /etc/mosquitto/certs/mqtt_server.crt --insecure
+    ```
+
+    - On the IoT device:
+
+    ```bash
+    mosquitto_pub -h mqtt_ip -p 8883 -t test/topic/pki -m "Hello PKI!" --cafile /path/to/mqtt_server.crt --insecure
+    ```
 
 ## Issues 
-If you have any Permission denied messages when moving/sending/copying files, make sure the directories and files have proper permissions. Permissions can be changed with chmod `chmod -v -r 755 ./fileOrdirectory` for example.
-Mosquitto does not read certificates in home directory. Make sure to put them in another directory like /etc/mosquitto/certs for example, and assign the proper permissions. By default, let user "mosquitto:mosquitto" allow to read the cert files.
-Since we are using self-signed certificates for the MQTT Broker, we have to use the `--insecure` flag to bypass certificate verification.
+
+Should you encounter any permission-related issues while transferring or accessing files, adjust the permissions accordingly. For example:
+
+```bash
+chmod -v 755 ./fileOrDirectory
+```
+
+Remember that Mosquitto does not read certificates from home directories by default. Place them in `/etc/mosquitto/certs/` or a similar directory with proper permissions. As these are self-signed certificates for testing, the `--insecure` flag is necessary to bypass certificate verification.
+
+---
