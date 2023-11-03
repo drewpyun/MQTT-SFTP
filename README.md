@@ -99,6 +99,29 @@ Next, generate the certificate request
 Finally, create the self-signed certificate using the private key we just created.
 Note: This is only recommended for a test environemnt. For a production environment, you should have your certificate signed by a certificate authority (CA).
 `openssl x509 -req -days 365 -in mqtt_server.csr -signkey mqtt_server.key -out mqtt_server.crt`
+After generation of the X.509 .key, the certificate request .csr, and the self-signed certificate .crt, move them to /etc/mosquitto/certs/
+```
+sudo mkdir /etc/mosquitto/certs/
+mv mqtt_server.key /etc/mosquitto/certs/
+mv mqtt_server.csr /etc/mosquitto/certs/
+mv mqtt_server.cst /etc/mosquitto/certs/
+```
+Make sure they have the proper permissions for the default Mosquitto user to read.
+```
+sudo chown mosquitto:mosquitto /etc/mosquitto/certs/
+sudo chmod 400 /etc/mosquitto/certs/mqtt_server.key
+sudo chmod 444 /etc/mosquitto/certs/mqtt_server.crt
+```
+Next, configure Mosquitto to use the key and the self-signed certificate.
 
-## Issues
+`sudo vi/vim/nano /etc/mosquitto/mosquitto.conf`
+Uncomment `#listener` to `listener 8883 ` to listen on port 8883. (Recommended for TLS)
+Uncomment `#certfile` to `certfile /path/to/mqtt_server.crt`
+Uncomment `#keyfile` to `keyfile /path/to/mqtt_server.key`
+
+Restart the Mosquitto server `sudo systemctl restart mosquitto`
+Check the status of the server `sudo systemctl status mosquitto`
+
+## Issues 
 If you have any Permission denied messages when moving/sending/copying files, make sure the directories and files have proper permissions. Permissions can be changed with chmod `chmod -v -r 755 ./fileOrdirectory` for example.
+Mosquitto does not read certificates in home directory. Make sure to put them in another directory like /etc/mosquitto/certs for example, and assign the proper permissions. By default, let user "mosquitto:mosquitto" allow to read the cert files.
