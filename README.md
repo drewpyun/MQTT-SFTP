@@ -94,9 +94,9 @@ Test the PKI implementation by running the `SFTP-PKI-TEST.py` file in the test s
 ### IoT <-> MQTT Broker Key Generation
 On the MQTT Broker device, generate the private X.509 key for TLS 1.3
 `openssl genpkey -algorithm RSA -out mqtt_server.key`
-Next, generate the certificate request
+Next, generate the certificate request using the private key
 `openssl req -new -key mqtt_server.key -out mqtt_server.csr`
-Finally, create the self-signed certificate using the private key we just created.
+Finally, create the self-signed certificate using the private key and the certificate request.
 Note: This is only recommended for a test environemnt. For a production environment, you should have your certificate signed by a certificate authority (CA).
 `openssl x509 -req -days 365 -in mqtt_server.csr -signkey mqtt_server.key -out mqtt_server.crt`
 After generation of the X.509 .key, the certificate request .csr, and the self-signed certificate .crt, move them to /etc/mosquitto/certs/
@@ -116,11 +116,14 @@ Next, configure Mosquitto to use the key and the self-signed certificate.
 
 `sudo vi/vim/nano /etc/mosquitto/mosquitto.conf`
 Uncomment `#listener` to `listener 8883 ` to listen on port 8883. (Recommended for TLS)
-Uncomment `#certfile` to `certfile /path/to/mqtt_server.crt`
-Uncomment `#keyfile` to `keyfile /path/to/mqtt_server.key`
+Uncomment `#certfile` to `certfile /etc/mosquitto/certs/mqtt_server.crt`
+Uncomment `#keyfile` to `keyfile /etc/mosquitto/certs/mqtt_server.key`
 
 Restart the Mosquitto server `sudo systemctl restart mosquitto`
 Check the status of the server `sudo systemctl status mosquitto`
+
+To test MQTT using TLS 1.3:
+Send the 
 
 ## Issues 
 If you have any Permission denied messages when moving/sending/copying files, make sure the directories and files have proper permissions. Permissions can be changed with chmod `chmod -v -r 755 ./fileOrdirectory` for example.
