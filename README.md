@@ -4,6 +4,7 @@
 
 This project integrates MQTT and SSH File Transfer Protocol (SFTP) to facilitate secure file exchanges over MQTT. It utilizes OpenSSH for SFTP functionalities and Mosquitto as the MQTT broker. The architecture also incorporates Public Key Infrastructure (PKI) to ensure secure connections between an IoT device, the MQTT broker, and the SFTP server. This repository includes pre-generated key pairs for testing purposes. However, this setup is not recommended for production environments without further security measures.
 
+![network diagram](https://i.imgur.com/hbVA7Cw.png)
 ## Requirements
 
 - Python 3.11.0-6 (Compatibility with other versions such as 3.10.x or 3.12.x is not tested)
