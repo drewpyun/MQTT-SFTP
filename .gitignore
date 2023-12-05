@@ -2,3 +2,6 @@
 .DS_Store
 sftp_config.json
 test.txt
+/venv/
+*.xml
+*.iml
