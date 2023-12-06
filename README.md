@@ -55,7 +55,7 @@ This project integrates MQTT and SSH File Transfer Protocol (SFTP) to facilitate
 4. Test the SFTP connection from another machine:
 
     ```bash
-    sftp test@server_ip
+    sftp test@sftp_ip
     ```
 
 ### Mosquitto Installation and Configuration:
@@ -105,13 +105,13 @@ This project integrates MQTT and SSH File Transfer Protocol (SFTP) to facilitate
 2. Copy the public key to the SFTP server:
 
     ```bash
-    scp ~/.ssh/id_rsa_iot.pub test@your_server_ip:/home/test/
+    scp ~/.ssh/id_rsa_iot.pub test@sftp_ip:/home/test/
     ```
 
 3. On the SFTP server, append the IoT device's public key to the `authorized_keys`:
 
     ```bash
-    ssh test@serverIP 'cat >> ~/.ssh/authorized_keys' < ~/.ssh/id_rsa_iot.pub
+    ssh test@sftp_ip 'cat >> ~/.ssh/authorized_keys' < ~/.ssh/id_rsa_iot.pub
     ```
 
 4. Enable public key authentication and restart the SSH service:
@@ -135,7 +135,7 @@ This project integrates MQTT and SSH File Transfer Protocol (SFTP) to facilitate
 5. Test the PKI setup by connecting to the SFTP server from the IoT device:
 
     ```bash
-    ssh -i ~/.ssh/id_rsa_iot test@serverIP
+    ssh -i ~/.ssh/id_rsa_iot test@sftp_ip
     ```
 
 ### PKI Setup for IoT and MQTT Broker Communication:
@@ -169,7 +169,15 @@ This project integrates MQTT and SSH File Transfer Protocol (SFTP) to facilitate
     sudo chmod 444 /etc/mosquitto/certs/mqtt_server.crt
     ```
 
-5. Configure Mosquitto to use TLS and restart the service:
+5. Transfer the .crt file to the IoT device:
+
+    - On the IoT device:
+    ```bash
+    mkdir ~/.mqtt/
+    scp mqtt_server@mqtt_ip:/etc/mosquitto/certs/mqtt_server.crt ~/.mqtt/
+    ```
+
+6. Configure Mosquitto to use TLS and restart the service:
 
     ```bash
     sudo nano /etc/mosquitto/mosquitto.conf
@@ -189,7 +197,7 @@ This project integrates MQTT and SSH File Transfer Protocol (SFTP) to facilitate
     sudo systemctl restart mosquitto
     ```
 
-6. Test MQTT over TLS by subscribing on the broker and publishing from the IoT device:
+7. Test MQTT over TLS by subscribing on the broker and publishing from the IoT device:
 
     - On the broker:
 
@@ -202,6 +210,21 @@ This project integrates MQTT and SSH File Transfer Protocol (SFTP) to facilitate
     ```bash
     mosquitto_pub -h mqtt_ip -p 8883 -t test/topic/pki -m "Hello PKI!" --cafile /path/to/mqtt_server.crt --insecure
     ```
+
+### Install Python dependencies
+
+1. Install all Python dependencies in the requirements.txt
+
+    ```bash
+    pip3 install -r requirements.txt
+    ```
+
+2. Test installation by running the example "SFTP-PKI-TEST.py" in the test folder
+
+    ```bash
+    python3 ./test/SFTP-PKI-TEST.py
+    ```
+    - Note: Use the full path to the private key (usually /etc/user/.ssh/..)
 
 ## Issues 
 
