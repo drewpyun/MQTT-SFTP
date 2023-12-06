@@ -171,9 +171,10 @@ This project integrates MQTT and SSH File Transfer Protocol (SFTP) to facilitate
 
 5. Transfer the .crt file to the IoT device:
 
+    - On the IoT device:
     ```bash
-    Copy code
-    scp /etc/mosquitto/certs/mqtt_server.crt iot_username@iot_ip:/home/iot_username
+    mkdir ~/.mqtt/
+    scp mqtt_server@mqttIP:/etc/mosquitto/certs/mqtt_server.crt ~/.mqtt/
     ```
 
 6. Configure Mosquitto to use TLS and restart the service:
