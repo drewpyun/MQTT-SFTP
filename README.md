@@ -169,7 +169,14 @@ This project integrates MQTT and SSH File Transfer Protocol (SFTP) to facilitate
     sudo chmod 444 /etc/mosquitto/certs/mqtt_server.crt
     ```
 
-5. Configure Mosquitto to use TLS and restart the service:
+5. Transfer the .crt file to the IoT device:
+
+    ```bash
+    Copy code
+    scp /etc/mosquitto/certs/mqtt_server.crt iot_username@iot_ip:/home/iot_username
+    ```
+
+6. Configure Mosquitto to use TLS and restart the service:
 
     ```bash
     sudo nano /etc/mosquitto/mosquitto.conf
@@ -189,7 +196,7 @@ This project integrates MQTT and SSH File Transfer Protocol (SFTP) to facilitate
     sudo systemctl restart mosquitto
     ```
 
-6. Test MQTT over TLS by subscribing on the broker and publishing from the IoT device:
+7. Test MQTT over TLS by subscribing on the broker and publishing from the IoT device:
 
     - On the broker:
 
