@@ -9,9 +9,9 @@ ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())  # Auto-add the server
 authentication_success = False
 
 # Collect user input for server connection details
-server_ip = input("Please enter the server IP: ")  # Server IP address
-username = input("Please enter the username: ")  # SSH username
-private_key_path = input("Please enter the path to your private key: ")  # Path to the private SSH key
+server_ip = input("Please enter the SFTP server IP: ")  # Server IP address
+username = input("Please enter the username of the SFTP server: ")  # SSH username
+private_key_path = input("Please enter the full path to your private key: ")  # Path to the private SSH key
 
 try:
     # First Authentication Attempt: Without passphrase
