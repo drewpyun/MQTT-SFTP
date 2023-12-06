@@ -211,6 +211,21 @@ This project integrates MQTT and SSH File Transfer Protocol (SFTP) to facilitate
     mosquitto_pub -h mqtt_ip -p 8883 -t test/topic/pki -m "Hello PKI!" --cafile /path/to/mqtt_server.crt --insecure
     ```
 
+### Install Python dependencies
+
+1. Install all Python dependencies in the requirements.txt
+
+    ```bash
+    pip3 install -r requirements.txt
+    ```
+
+2. Test installation by running the example "SFTP-PKI-TEST.py" in the test folder
+
+    ```bash
+    python3 ./test/SFTP-PKI-TEST.py
+    ```
+    - Note: Use the full path to the private key (usually /etc/user/.ssh/..)
+
 ## Issues 
 
 Should you encounter any permission-related issues while transferring or accessing files, adjust the permissions accordingly. For example:
