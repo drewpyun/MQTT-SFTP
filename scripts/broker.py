@@ -1,10 +1,7 @@
-import paho.mqtt.client as mqtt
+import getpass
 import paramiko
+import paho.mqtt.client as mqtt
 import json
-import logging
-
-# Logging Configuration
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 # MQTT Broker Configuration
 broker_address = "localhost"
@@ -20,22 +17,24 @@ sftp_private_key = '/path/to/private/key'
 command_topic = "iot/sftp/command"
 response_topic = "iot/sftp/response"
 
+# Prompt for the passphrase
+passphrase = getpass.getpass("Enter the passphrase for the private key: ")
+
 def on_connect(client, userdata, flags, rc):
-    logging.info(f"Connected with result code {rc}")
+    print("Connected with result code "+str(rc))
     client.subscribe(command_topic)
 
 def on_message(client, userdata, msg):
-    logging.info(f"Received command: {msg.payload.decode()}")
+    print(f"Received command: {msg.payload.decode()}")
     try:
         command = json.loads(msg.payload.decode())
-        logging.debug(f"Parsed command: {command}")
 
         # Initialize SFTP client
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(sftp_host, port=sftp_port, username=sftp_username, key_filename=sftp_private_key)
+        private_key = paramiko.RSAKey(filename=sftp_private_key, password=passphrase)
+        ssh.connect(sftp_host, port=sftp_port, username=sftp_username, pkey=private_key)
         sftp = ssh.open_sftp()
-        logging.debug("SFTP client initialized and connected")
 
         # Execute command
         if command['action'] == 'get':
@@ -51,12 +50,9 @@ def on_message(client, userdata, msg):
         ssh.close()
 
         client.publish(response_topic, response)
-        logging.info(f"Response published: {response}")
 
     except Exception as e:
-        error_message = f"Error: {str(e)}"
-        client.publish(response_topic, error_message)
-        logging.error(error_message)
+        client.publish(response_topic, f"Error: {str(e)}")
 
 client = mqtt.Client()
 client.on_connect = on_connect
