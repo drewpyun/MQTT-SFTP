@@ -42,9 +42,10 @@ client.on_message = on_message
 client.connect(broker_address, port, 60)
 
 # Define local and remote paths for the file transfer
-remote_path = '/home/test/PKI-Test'
+remote_path = '/home/test/PKI-Test'  # Ensure this file exists on the SFTP server
 directory = '/home/testlaptop-1/Documents/Test'
-local_path = '/home/testlaptop-1/Documents/Test/example.txt'
+local_file = 'example.txt'
+local_path = os.path.join(directory, local_file)
 
 # Check if the directory exists and is writable
 if not os.path.exists(directory):
@@ -53,11 +54,21 @@ if not os.path.exists(directory):
         print(f"Directory '{directory}' created successfully.")
     except OSError as error:
         print(f"Failed to create directory '{directory}'. Error: {error}")
+        exit(1)
+elif not os.access(directory, os.W_OK):
+    print(f"Directory '{directory}' is not writable. Check permissions.")
+    exit(1)
 else:
-    if os.access(directory, os.W_OK):
-        print(f"Directory '{directory}' is writable.")
-    else:
-        print(f"Directory '{directory}' is not writable. Check permissions.")
+    print(f"Directory '{directory}' is writable.")
+
+# Prepare the local file for writing
+try:
+    with open(local_path, 'w') as file:
+        file.write('')  # Create an empty file or reset an existing file
+    print(f"File '{local_file}' prepared for writing in '{directory}'.")
+except OSError as error:
+    print(f"Failed to prepare file '{local_file}' in '{directory}'. Error: {error}")
+    exit(1)
 
 # Send command to perform file transfer action
 command = {
