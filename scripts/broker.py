@@ -1,5 +1,6 @@
-import paho.mqtt.client as mqtt
+import getpass
 import paramiko
+import paho.mqtt.client as mqtt
 import json
 
 # MQTT Broker Configuration
@@ -16,6 +17,9 @@ sftp_private_key = '/path/to/private/key'
 command_topic = "iot/sftp/command"
 response_topic = "iot/sftp/response"
 
+# Prompt for the passphrase
+passphrase = getpass.getpass("Enter the passphrase for the private key: ")
+
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
     client.subscribe(command_topic)
@@ -28,7 +32,8 @@ def on_message(client, userdata, msg):
         # Initialize SFTP client
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        ssh.connect(sftp_host, port=sftp_port, username=sftp_username, key_filename=sftp_private_key)
+        private_key = paramiko.RSAKey(filename=sftp_private_key, password=passphrase)
+        ssh.connect(sftp_host, port=sftp_port, username=sftp_username, pkey=private_key)
         sftp = ssh.open_sftp()
 
         # Execute command

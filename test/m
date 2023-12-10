@@ -1,0 +1,31 @@
+2023-12-08 20:56:52,184 - INFO - Connected with result code 0
+2023-12-08 20:57:00,251 - INFO - Received command: {"action": "get", "remote_path": "/home/test/PKI-Test", "local_path": "/home/testlaptop-1/"}
+2023-12-08 20:57:00,251 - DEBUG - Parsed command: {'action': 'get', 'remote_path': '/home/test/PKI-Test', 'local_path': '/home/testlaptop-1/'}
+2023-12-08 20:57:00,256 - DEBUG - starting thread (client mode): 0x3ecf08e0
+2023-12-08 20:57:00,256 - DEBUG - Local version/idstring: SSH-2.0-paramiko_3.3.1
+2023-12-08 20:57:00,301 - DEBUG - Remote version/idstring: SSH-2.0-OpenSSH_8.9p1 Ubuntu-3ubuntu0.4
+2023-12-08 20:57:00,301 - INFO - Connected (version 2.0, client OpenSSH_8.9p1)
+2023-12-08 20:57:00,309 - DEBUG - === Key exchange possibilities ===
+2023-12-08 20:57:00,309 - DEBUG - kex algos: curve25519-sha256, curve25519-sha256@libssh.org, ecdh-sha2-nistp256, ecdh-sha2-nistp384, ecdh-sha2-nistp521, sntrup761x25519-sha512@openssh.com, diffie-hellman-group-exchange-sha256, diffie-hellman-group16-sha512, diffie-hellman-group18-sha512, diffie-hellman-group14-sha256
+2023-12-08 20:57:00,309 - DEBUG - server key: rsa-sha2-512, rsa-sha2-256, ecdsa-sha2-nistp256, ssh-ed25519
+2023-12-08 20:57:00,309 - DEBUG - client encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2023-12-08 20:57:00,309 - DEBUG - server encrypt: chacha20-poly1305@openssh.com, aes128-ctr, aes192-ctr, aes256-ctr, aes128-gcm@openssh.com, aes256-gcm@openssh.com
+2023-12-08 20:57:00,309 - DEBUG - client mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2023-12-08 20:57:00,309 - DEBUG - server mac: umac-64-etm@openssh.com, umac-128-etm@openssh.com, hmac-sha2-256-etm@openssh.com, hmac-sha2-512-etm@openssh.com, hmac-sha1-etm@openssh.com, umac-64@openssh.com, umac-128@openssh.com, hmac-sha2-256, hmac-sha2-512, hmac-sha1
+2023-12-08 20:57:00,309 - DEBUG - client compress: none, zlib@openssh.com
+2023-12-08 20:57:00,309 - DEBUG - server compress: none, zlib@openssh.com
+2023-12-08 20:57:00,310 - DEBUG - client lang: <none>
+2023-12-08 20:57:00,310 - DEBUG - server lang: <none>
+2023-12-08 20:57:00,310 - DEBUG - kex follows: False
+2023-12-08 20:57:00,310 - DEBUG - === Key exchange agreements ===
+2023-12-08 20:57:00,310 - DEBUG - Kex: curve25519-sha256@libssh.org
+2023-12-08 20:57:00,310 - DEBUG - HostKey: ssh-ed25519
+2023-12-08 20:57:00,310 - DEBUG - Cipher: aes128-ctr
+2023-12-08 20:57:00,310 - DEBUG - MAC: hmac-sha2-256
+2023-12-08 20:57:00,310 - DEBUG - Compression: none
+2023-12-08 20:57:00,310 - DEBUG - === End of kex handshake ===
+2023-12-08 20:57:00,343 - DEBUG - kex engine KexCurve25519 specified hash_algo <built-in function openssl_sha256>
+2023-12-08 20:57:00,345 - DEBUG - Switch to new keys ...
+2023-12-08 20:57:00,346 - DEBUG - Got EXT_INFO: {'server-sig-algs': b'ssh-ed25519,sk-ssh-ed25519@openssh.com,ssh-rsa,rsa-sha2-256,rsa-sha2-512,ssh-dss,ecdsa-sha2-nistp256,ecdsa-sha2-nistp384,ecdsa-sha2-nistp521,sk-ecdsa-sha2-nistp256@openssh.com,webauthn-sk-ecdsa-sha2-nistp256@openssh.com', 'publickey-hostbound@openssh.com': b'0'}
+2023-12-08 20:57:00,346 - DEBUG - Adding ssh-ed25519 host key for 10.0.1.194: b'7fd6150f8e8457f41b29440f44df678b'
+2023-12-08 20:57:00,346 - ERROR - Error: [Errno 13] Permission denied: '/home/testlaptop/.ssh/id_rsa_mqtt'
