@@ -1,54 +1,62 @@
 import paho.mqtt.client as mqtt
 import json
+import os
 
-<<<<<<< HEAD
+# Function to prompt user for broker address
+def get_broker_address():
+    return input("Enter the MQTT broker address: ")
+
 # MQTT Broker Configuration
-broker_address = "localhost"
-broker_address = "10.0.1.214"
-port = 1883
-=======
-# Configuration details for connecting to the MQTT broker.
-broker_address = "localhost"  # The IP address or hostname of the MQTT broker.
-port = 1883                  # The port on which the MQTT broker is listening.
->>>>>>> a1e5a89fa242d9b5b1e90ddfd2ceeba8d570da23
+broker_address = get_broker_address()
+port = 1883  # Default MQTT port
 
-# MQTT topics for sending commands and receiving responses.
-command_topic = "iot/sftp/command"   # Topic for sending SFTP commands to the broker.
-response_topic = "iot/sftp/response" # Topic for receiving responses from the broker.
+# MQTT Topics
+command_topic = "iot/sftp/command"
+response_topic = "iot/sftp/response"
 
-# Called when the client successfully connects to the broker.
+# Called when the client receives CONNACK response from the server
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code "+str(rc))
-    client.subscribe(response_topic)  # Subscribe to the response topic.
+    client.subscribe(response_topic)  # Subscribe to the response topic
 
-# Called when a message is received from the broker.
+# Called when a message has been received on a topic that the client subscribes to
 def on_message(client, userdata, msg):
-    print(f"Response: {msg.payload.decode()}")  # Print the response from the broker.
+    print(f"Response: {msg.payload.decode()}")
 
-# Create an MQTT client instance.
+# Create MQTT client instance
 client = mqtt.Client()
-client.on_connect = on_connect  # Assign the on_connect function.
-client.on_message = on_message  # Assign the on_message function.
 
-# Connect to the MQTT broker.
+# Assign event callbacks
+client.on_connect = on_connect
+client.on_message = on_message
+
+# Connect to MQTT broker
 client.connect(broker_address, port, 60)
 
-# Command to be sent to the MQTT broker.
-command = {
-    'action': 'get',  # Type of SFTP action ('get' for download).
-    'remote_path': '/remote/path/to/file',  # Path of the file on the SFTP server.
-    'local_path': '/local/path/to/store'    # Path to store the file on the IoT device.
-}
-
-# Convert the command dictionary to a JSON string and publish it to the broker.
-client.publish(command_topic, json.dumps(command))
-
-# Start the network loop in a separate thread.
+# Start the network loop in a separate thread
 client.loop_start()
 
-# Wait for the user to press Enter before exiting.
+# Local path where the file will be stored
+local_path = '/home/testlaptop-1/Documents/example.txt'
+
+# Ensure the directory exists
+local_dir = os.path.dirname(local_path)
+if not os.path.exists(local_dir):
+    os.makedirs(local_dir)
+
+# Command to be sent to the broker - in this case, to download a file
+command = {
+    'action': 'get',  # Action type ('get' for download, 'put' for upload)
+    'remote_path': '/remote/path/to/file',  # Path of the file on the SFTP server
+    'local_path': local_path  # Local path where the file will be saved
+}
+
+# Publish the command to the MQTT broker
+client.publish(command_topic, json.dumps(command))
+
+# Wait for user input before exiting
 input("Press Enter to exit...\n")
 
-# Stop the network loop and disconnect from the broker.
+# Stop the network loop and disconnect from the broker
 client.loop_stop()
 client.disconnect()
