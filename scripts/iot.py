@@ -42,9 +42,11 @@ client.on_message = on_message
 client.connect(broker_address, port, 60)
 
 # Define local and remote paths for the file transfer
-remote_path = '/remote/path/to/file'
-local_path = '/local/path/to/store'
-
+remote_path = '/home/test/PKI-Test'
+directory = '/home/testlaptop-1/Documents/Test'
+local_path = '/home/testlaptop-1/Documents/Test/example.txt'
+if not os.path.exists(directory):
+    os.makedirs(directory)
 # Ensure the local directory exists and is writable
 local_dir = os.path.dirname(local_path)
 if not os.path.exists(local_dir):
