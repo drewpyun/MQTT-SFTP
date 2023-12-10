@@ -1,69 +1,76 @@
-import getpass
-import paramiko
 import paho.mqtt.client as mqtt
 import json
-import logging
+import os
 
-# Enable logging for more detailed debug output
-logging.basicConfig(level=logging.DEBUG)
+# Function to prompt the user for input and validate it
+def get_input(prompt, validation_func=None):
+    while True:
+        user_input = input(prompt)
+        if not validation_func or validation_func(user_input):
+            return user_input
+        print("Invalid input. Please try again.")
 
-# MQTT Broker Configuration
-broker_address = "localhost"
-port = 1883
+# Function to validate IP addresses
+def valid_ip(address):
+    parts = address.split(".")
+    if len(parts) != 4:
+        return False
+    for item in parts:
+        if not item.isdigit() or not 0 <= int(item) <= 255:
+            return False
+    return True
 
-# SFTP Server Configuration
-sftp_host = '10.0.1.194'
-sftp_port = 22
-sftp_username = 'test'
-sftp_private_key = '/home/testlaptop/.ssh/id_rsa_mqtt'
+# Prompt user for the MQTT broker's IP address
+broker_address = get_input("Enter the MQTT broker's IP address: ", valid_ip)
+port = 1883  # Standard MQTT port
 
 # MQTT Topics
 command_topic = "iot/sftp/command"
 response_topic = "iot/sftp/response"
 
-# Prompt for the passphrase
-passphrase = getpass.getpass("Enter the passphrase for the private key: ")
-
 def on_connect(client, userdata, flags, rc):
-    print(f"Connected with result code {rc}")
-    client.subscribe(command_topic)
+    print("Connected with result code " + str(rc))
+    client.subscribe(response_topic)
 
 def on_message(client, userdata, msg):
-    try:
-        print(f"Received command: {msg.payload.decode()}")
-        command = json.loads(msg.payload.decode())
-
-        # Initialize SFTP client
-        ssh = paramiko.SSHClient()
-        ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        private_key = paramiko.RSAKey(filename=sftp_private_key, password=passphrase)
-        ssh.connect(sftp_host, port=sftp_port, username=sftp_username, pkey=private_key)
-        sftp = ssh.open_sftp()
-
-        # Execute command
-        if command['action'] == 'get':
-            print(f"Downloading file from {command['remote_path']} to {command['local_path']}")
-            sftp.get(command['remote_path'], command['local_path'])
-            response = "File downloaded successfully."
-        elif command['action'] == 'put':
-            print(f"Uploading file from {command['local_path']} to {command['remote_path']}")
-            sftp.put(command['local_path'], command['remote_path'])
-            response = "File uploaded successfully."
-        else:
-            response = "Invalid command."
-
-        sftp.close()
-        ssh.close()
-
-    except Exception as e:
-        print(f"Error encountered: {e}")
-        response = f"Error: {e}"
-
-    client.publish(response_topic, response)
+    print(f"Response: {msg.payload.decode()}")
 
 client = mqtt.Client()
 client.on_connect = on_connect
 client.on_message = on_message
 
 client.connect(broker_address, port, 60)
-client.loop_forever()
+
+# Define local and remote paths for the file transfer
+remote_path = '/home/test/PKI-Test'
+directory = '/home/testlaptop-1/Documents/Test'
+local_path = '/home/testlaptop-1/Documents/Test/example.txt'
+
+print(f"Checking directory: {directory}")
+if not os.path.exists(directory):
+    print(f"Directory does not exist, creating: {directory}")
+    os.makedirs(directory)
+
+# Ensure the local file exists
+if not os.path.exists(local_path):
+    try:
+        with open(local_path, 'w') as file:
+            file.write('')
+        print(f"File {local_path} successfully created!")
+    except IOError as e:
+        print(f"Error creating file: {e}")
+        exit(1)
+
+# Send command to perform file transfer action
+command = {
+    'action': 'get',  # 'get' for download, 'put' for upload
+    'remote_path': remote_path,
+    'local_path': local_path
+}
+client.publish(command_topic, json.dumps(command))
+
+client.loop_start()
+
+input("Press Enter to exit...\n")
+client.loop_stop()
+client.disconnect()
