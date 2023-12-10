@@ -8,10 +8,10 @@ broker_address = "localhost"
 port = 1883
 
 # SFTP Server Configuration
-sftp_host = 'sftp_server_ip'
+sftp_host = '10.0.1.194'
 sftp_port = 22
-sftp_username = 'username'
-sftp_private_key = '/path/to/private/key'
+sftp_username = 'test'
+sftp_private_key = '/home/testlaptop/.ssh/id_rsa_mqtt'
 
 # MQTT Topics
 command_topic = "iot/sftp/command"
