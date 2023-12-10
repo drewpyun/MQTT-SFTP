@@ -3,6 +3,7 @@ import json
 
 # MQTT Broker Configuration
 broker_address = "localhost"
+broker_address = "10.0.1.214"
 port = 1883
 
 # MQTT Topics
