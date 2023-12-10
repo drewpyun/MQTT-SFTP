@@ -1,6 +1,6 @@
+import os
 import paho.mqtt.client as mqtt
 import json
-import os
 
 # Function to prompt the user for input and validate it
 def get_input(prompt, validation_func=None):
@@ -46,20 +46,18 @@ remote_path = '/home/test/PKI-Test'
 directory = '/home/testlaptop-1/Documents/Test'
 local_path = '/home/testlaptop-1/Documents/Test/example.txt'
 
-print(f"Checking directory: {directory}")
+# Check if the directory exists and is writable
 if not os.path.exists(directory):
-    print(f"Directory does not exist, creating: {directory}")
-    os.makedirs(directory)
-
-# Ensure the local file exists
-if not os.path.exists(local_path):
     try:
-        with open(local_path, 'w') as file:
-            file.write('')
-        print(f"File {local_path} successfully created!")
-    except IOError as e:
-        print(f"Error creating file: {e}")
-        exit(1)
+        os.makedirs(directory)
+        print(f"Directory '{directory}' created successfully.")
+    except OSError as error:
+        print(f"Failed to create directory '{directory}'. Error: {error}")
+else:
+    if os.access(directory, os.W_OK):
+        print(f"Directory '{directory}' is writable.")
+    else:
+        print(f"Directory '{directory}' is not writable. Check permissions.")
 
 # Send command to perform file transfer action
 command = {
