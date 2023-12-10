@@ -2,6 +2,10 @@ import getpass
 import paramiko
 import paho.mqtt.client as mqtt
 import json
+import logging
+
+# Setup logging for detailed output
+logging.basicConfig(level=logging.DEBUG)
 
 # MQTT Broker Configuration
 broker_address = "localhost"
@@ -21,11 +25,11 @@ response_topic = "iot/sftp/response"
 passphrase = getpass.getpass("Enter the passphrase for the private key: ")
 
 def on_connect(client, userdata, flags, rc):
-    print("Connected with result code "+str(rc))
+    logging.info(f"Connected with result code {rc}")
     client.subscribe(command_topic)
 
 def on_message(client, userdata, msg):
-    print(f"Received command: {msg.payload.decode()}")
+    logging.info(f"Received command: {msg.payload.decode()}")
     try:
         command = json.loads(msg.payload.decode())
 
@@ -33,14 +37,18 @@ def on_message(client, userdata, msg):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         private_key = paramiko.RSAKey(filename=sftp_private_key, password=passphrase)
+        logging.debug("Attempting to connect to SFTP server...")
         ssh.connect(sftp_host, port=sftp_port, username=sftp_username, pkey=private_key)
         sftp = ssh.open_sftp()
+        logging.debug("Connected to SFTP server.")
 
         # Execute command
         if command['action'] == 'get':
+            logging.info(f"Downloading file from {command['remote_path']} to {command['local_path']}")
             sftp.get(command['remote_path'], command['local_path'])
             response = "File downloaded successfully."
         elif command['action'] == 'put':
+            logging.info(f"Uploading file from {command['local_path']} to {command['remote_path']}")
             sftp.put(command['local_path'], command['remote_path'])
             response = "File uploaded successfully."
         else:
@@ -49,10 +57,11 @@ def on_message(client, userdata, msg):
         sftp.close()
         ssh.close()
 
-        client.publish(response_topic, response)
-
     except Exception as e:
-        client.publish(response_topic, f"Error: {str(e)}")
+        logging.error(f"Error encountered: {str(e)}")
+        response = f"Error: {str(e)}"
+
+    client.publish(response_topic, response)
 
 client = mqtt.Client()
 client.on_connect = on_connect
