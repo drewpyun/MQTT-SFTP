@@ -2,10 +2,7 @@ import getpass
 import paramiko
 import paho.mqtt.client as mqtt
 import json
-import logging
-
-# Setup logging for detailed output
-logging.basicConfig(level=logging.DEBUG)
+import os
 
 # MQTT Broker Configuration
 broker_address = "localhost"
@@ -20,16 +17,17 @@ sftp_private_key = '/home/testlaptop/.ssh/id_rsa_mqtt'
 # MQTT Topics
 command_topic = "iot/sftp/command"
 response_topic = "iot/sftp/response"
+file_transfer_topic = "iot/sftp/file_transfer"
 
 # Prompt for the passphrase
 passphrase = getpass.getpass("Enter the passphrase for the private key: ")
 
 def on_connect(client, userdata, flags, rc):
-    logging.info(f"Connected with result code {rc}")
+    print("Connected with result code "+str(rc))
     client.subscribe(command_topic)
 
 def on_message(client, userdata, msg):
-    logging.info(f"Received command: {msg.payload.decode()}")
+    print(f"Received command: {msg.payload.decode()}")
     try:
         command = json.loads(msg.payload.decode())
 
@@ -37,31 +35,40 @@ def on_message(client, userdata, msg):
         ssh = paramiko.SSHClient()
         ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         private_key = paramiko.RSAKey(filename=sftp_private_key, password=passphrase)
-        logging.debug("Attempting to connect to SFTP server...")
         ssh.connect(sftp_host, port=sftp_port, username=sftp_username, pkey=private_key)
         sftp = ssh.open_sftp()
-        logging.debug("Connected to SFTP server.")
 
         # Execute command
         if command['action'] == 'get':
-            logging.info(f"Downloading file from {command['remote_path']} to {command['local_path']}")
-            sftp.get(command['remote_path'], command['local_path'])
-            response = "File downloaded successfully."
+            local_path = command['local_path']
+            # Ensure the directory exists
+            local_dir = os.path.dirname(local_path)
+            if not os.path.exists(local_dir):
+                os.makedirs(local_dir)
+
+            sftp.get(command['remote_path'], local_path)
+            print(f"File downloaded successfully to {local_path}.")
+
+            # Read and send the file content to the IoT device via MQTT
+            with open(local_path, 'rb') as file:
+                file_content = file.read()
+                client.publish(file_transfer_topic, file_content)
+                print("File content sent to the IoT device.")
+
         elif command['action'] == 'put':
-            logging.info(f"Uploading file from {command['local_path']} to {command['remote_path']}")
-            sftp.put(command['local_path'], command['remote_path'])
-            response = "File uploaded successfully."
+            # This part would handle file upload if needed
+            pass
+
         else:
             response = "Invalid command."
+            client.publish(response_topic, response)
 
         sftp.close()
         ssh.close()
 
     except Exception as e:
-        logging.error(f"Error encountered: {str(e)}")
-        response = f"Error: {str(e)}"
-
-    client.publish(response_topic, response)
+        print(f"Error encountered: {str(e)}")
+        client.publish(response_topic, f"Error: {str(e)}")
 
 client = mqtt.Client()
 client.on_connect = on_connect
