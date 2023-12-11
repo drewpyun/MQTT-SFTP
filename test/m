@@ -26,3 +26,14 @@ Connected with result code 0
   File "/home/testlaptop-1/Documents/GitHub/MQTT-SFTP/venv/lib/python3.10/site-packages/paho/mqtt/client.py", line 1480, in subscribe
     for t, q in topic:
 ValueError: too many values to unpack (expected 2)
+
+
+/usr/lib64/python3.10/getpass.py:91: GetPassWarning: Can not control echo on the terminal.
+  passwd = fallback_getpass(prompt, stream)
+Warning: Password input may be echoed.
+Enter the passphrase for the private key: mqtt
+
+Connected with result code 0
+Received command: {"action": "get", "remote_path": "/remote/path/to/file", "local_path": "/local/path/to/save/file"}
+Downloading file from /remote/path/to/file to /local/path/to/save/file
+Error: [Errno 2] No such file or directory: '/path/to/private/key'
