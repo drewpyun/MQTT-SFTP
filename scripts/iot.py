@@ -25,15 +25,23 @@ broker_address = get_input("Enter the MQTT broker's IP address: ", valid_ip)
 port = 1883  # Standard MQTT port
 
 # MQTT Topics
-command_topic = "iot/sftp/command"
 response_topic = "iot/sftp/response"
+file_transfer_topic = "iot/sftp/file_transfer"
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
     client.subscribe(response_topic)
+    client.subscribe(file_transfer_topic)
 
 def on_message(client, userdata, msg):
-    print(f"Response: {msg.payload.decode()}")
+    if msg.topic == response_topic:
+        print(f"Response: {msg.payload.decode()}")
+    elif msg.topic == file_transfer_topic:
+        # File content received, write it to a local file
+        local_path = '/path/to/destination/file'  # Update this path as needed
+        with open(local_path, 'wb') as file:
+            file.write(msg.payload)
+            print(f"File received and saved to {local_path}")
 
 client = mqtt.Client()
 client.on_connect = on_connect
@@ -41,33 +49,7 @@ client.on_message = on_message
 
 client.connect(broker_address, port, 60)
 
-# Define local and remote paths for the file transfer
-remote_path = '/home/test/PKI-Test'
-directory = '/home/testlaptop-1/Documents/Test'
-local_path = '/home/testlaptop-1/Documents/Test/example.txt'
-
-# Ensure the local directory exists and is writable
-if not os.path.exists(directory):
-    os.makedirs(directory)
-
-try:
-    # Create or overwrite the file
-    with open(local_path, 'w') as file:
-        print(f"File 'example.txt' prepared for writing in '{directory}'.")
-except Exception as e:
-    print(f"Error creating file: {e}")
-    exit(1)
-
-# Send command to perform file transfer action
-command = {
-    'action': 'get',  # 'get' for download, 'put' for upload
-    'remote_path': remote_path,
-    'local_path': local_path
-}
-client.publish(command_topic, json.dumps(command))
-
 client.loop_start()
-
 input("Press Enter to exit...\n")
 client.loop_stop()
 client.disconnect()
