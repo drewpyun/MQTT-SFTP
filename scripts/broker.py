@@ -10,8 +10,10 @@ port = 1883
 
 # SFTP Server Configuration
 sftp_host = 'sftp_server_ip'  # Update with your SFTP server IP
+sftp_host = '10.0.1.194'  # Update with your SFTP server IP
 sftp_port = 22
 sftp_username = 'sftp_username'  # Update with your SFTP username
+sftp_username = 'test'  # Update with your SFTP username
 sftp_private_key = '/home/testlaptop/.ssh/id_rsa_mqtt'  # Update with your private key path
 
 # MQTT Topics
