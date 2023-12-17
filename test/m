@@ -1,0 +1,25 @@
+Exception in thread Thread-1 (_thread_main):
+Traceback (most recent call last):
+  File "/usr/lib64/python3.10/threading.py", line 1016, in _bootstrap_inner
+    self.run()
+  File "/usr/lib64/python3.10/threading.py", line 953, in run
+    self._target(*self._args, **self._kwargs)
+  File "/home/testlaptop-1/Documents/GitHub/MQTT-SFTP/venv/lib/python3.10/site-packages/paho/mqtt/client.py", line 3591, in _thread_main
+    self.loop_forever(retry_first_connection=True)
+  File "/home/testlaptop-1/Documents/GitHub/MQTT-SFTP/venv/lib/python3.10/site-packages/paho/mqtt/client.py", line 1756, in loop_forever
+    rc = self._loop(timeout)
+  File "/home/testlaptop-1/Documents/GitHub/MQTT-SFTP/venv/lib/python3.10/site-packages/paho/mqtt/client.py", line 1164, in _loop
+    rc = self.loop_read()
+  File "/home/testlaptop-1/Documents/GitHub/MQTT-SFTP/venv/lib/python3.10/site-packages/paho/mqtt/client.py", line 1556, in loop_read
+    rc = self._packet_read()
+  File "/home/testlaptop-1/Documents/GitHub/MQTT-SFTP/venv/lib/python3.10/site-packages/paho/mqtt/client.py", line 2439, in _packet_read
+    rc = self._packet_handle()
+  File "/home/testlaptop-1/Documents/GitHub/MQTT-SFTP/venv/lib/python3.10/site-packages/paho/mqtt/client.py", line 3039, in _packet_handle
+    return self._handle_connack()
+  File "/home/testlaptop-1/Documents/GitHub/MQTT-SFTP/venv/lib/python3.10/site-packages/paho/mqtt/client.py", line 3138, in _handle_connack
+    on_connect(
+  File "/home/testlaptop-1/Documents/GitHub/MQTT-SFTP/scripts/iot.py", line 31, in on_connect
+    client.subscribe([response_topic, file_transfer_topic])
+  File "/home/testlaptop-1/Documents/GitHub/MQTT-SFTP/venv/lib/python3.10/site-packages/paho/mqtt/client.py", line 1480, in subscribe
+    for t, q in topic:
+ValueError: too many values to unpack (expected 2)
