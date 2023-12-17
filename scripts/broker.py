@@ -4,24 +4,16 @@ import paho.mqtt.client as mqtt
 import json
 import os
 
-# MQTT Broker Configuration
 broker_address = "localhost"
 port = 1883
-
-# SFTP Server Configuration
-sftp_host = 'sftp_server_ip'  # Update with your SFTP server IP
-sftp_host = '10.0.1.194'  # Update with your SFTP server IP
+sftp_host = '10.0.1.194'
 sftp_port = 22
-sftp_username = 'sftp_username'  # Update with your SFTP username
-sftp_username = 'test'  # Update with your SFTP username
-sftp_private_key = '/home/testlaptop/.ssh/id_rsa_mqtt'  # Update with your private key path
-
-# MQTT Topics
+sftp_username = 'test'
+sftp_private_key = '/home/testlaptop/.ssh/id_rsa_mqtt'
 command_topic = "iot/sftp/command"
 response_topic = "iot/sftp/response"
 file_transfer_topic = "iot/sftp/file_transfer"
 
-# Prompt for the passphrase
 passphrase = getpass.getpass("Enter the passphrase for the private key: ")
 
 def on_connect(client, userdata, flags, rc):
@@ -33,7 +25,6 @@ def on_message(client, userdata, msg):
     try:
         command = json.loads(msg.payload.decode())
         if command['action'] == 'get':
-            print(f"Downloading file from {command['remote_path']} to {command['local_path']}")
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             private_key = paramiko.RSAKey(filename=sftp_private_key, password=passphrase)
@@ -43,7 +34,6 @@ def on_message(client, userdata, msg):
             sftp.close()
             ssh.close()
 
-            # Read and send file content
             with open(command['local_path'], 'rb') as file:
                 file_content = file.read()
                 client.publish(file_transfer_topic, file_content)
