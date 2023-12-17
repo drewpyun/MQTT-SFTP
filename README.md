@@ -225,14 +225,34 @@ This project integrates MQTT and SSH File Transfer Protocol (SFTP) to facilitate
     python3 ./test/SFTP-PKI-TEST.py
     ```
     - Note: Use the full path to the private key (usually /etc/user/.ssh/..)
+      
+## Using the scripts
+There are two scripts, under /scripts/ broker.py and iot.py.
+
+Before running, make sure to create a file "PKI-Test" on the SFTP server.
+```bash
+    touch PKI-Test
+```
+Edit the contents of "PKI-Test" to include a message. Ideally, this would be the firmware that would be pulled down to the IoT device.
+```bash
+    nano/vi PKI-Test
+```
+Run the broker.py script first. Ensure you have all requirements installed correctly and the paths set correctly. 
+Run the iot.py script next. Ensure you have all requirements installed correctly and that the paths are correctly set. 
 
 ## Issues 
 
-Should you encounter any permission-related issues while transferring or accessing files, adjust the permissions accordingly. For example:
+Adjust the permissions accordingly if you encounter any permission-related issues while transferring or accessing files. For example:
 
 ```bash
 chmod -v 755 ./fileOrDirectory
 ```
+
+Double-check that all the paths of files are correct. I have the following set for this project--
+SFTP: 
+- 
+MQTT:
+IoT:
 
 Remember that Mosquitto does not read certificates from home directories by default. Place them in `/etc/mosquitto/certs/` or a similar directory with proper permissions. As these are self-signed certificates for testing, the `--insecure` flag is necessary to bypass certificate verification.
 
