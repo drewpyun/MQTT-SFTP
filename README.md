@@ -242,7 +242,7 @@ Run the iot.py script next. Ensure you have all requirements installed correctly
 
 ## Issues 
 
-Adjust the permissions accordingly if you encounter any permission-related issues while transferring or accessing files. For example:
+You can adjust the permissions accordingly if you encounter permission-related issues while transferring or accessing files. For example:
 
 ```bash
 chmod -v 755 ./fileOrDirectory
@@ -250,9 +250,8 @@ chmod -v 755 ./fileOrDirectory
 
 Double-check that all the paths of files are correct. I have the following set for this project--
 SFTP: 
-- 
-MQTT:
-IoT:
+- PKI-Test is located at '/home/test/PKI-Test'
+- The username is "test"
 
 Remember that Mosquitto does not read certificates from home directories by default. Place them in `/etc/mosquitto/certs/` or a similar directory with proper permissions. As these are self-signed certificates for testing, the `--insecure` flag is necessary to bypass certificate verification.
 
