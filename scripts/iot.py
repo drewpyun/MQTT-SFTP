@@ -49,7 +49,8 @@ client.connect(broker_address, port, 60)
 
 # Sending a file transfer request
 remote_path = '/home/test/PKI-Test'
-local_path = '/home/testlaptop/testmqtt.txt'
+local_username = get_input("Enter the username of the MQTT broker device:")
+local_path = '/home/'+local_username+'/testmqtt.txt'
 
 command = {
     'action': 'get',
