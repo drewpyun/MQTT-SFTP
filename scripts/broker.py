@@ -6,10 +6,12 @@ import os
 
 broker_address = "localhost"
 port = 1883
+
 sftp_host = '10.0.1.194'
 sftp_port = 22
 sftp_username = 'test'
 sftp_private_key = '/home/testlaptop/.ssh/id_rsa_mqtt'
+
 command_topic = "iot/sftp/command"
 response_topic = "iot/sftp/response"
 file_transfer_topic = "iot/sftp/file_transfer"
@@ -25,6 +27,7 @@ def on_message(client, userdata, msg):
     try:
         command = json.loads(msg.payload.decode())
         if command['action'] == 'get':
+            print(f"Downloading file from {command['remote_path']} to {command['local_path']}")
             ssh = paramiko.SSHClient()
             ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
             private_key = paramiko.RSAKey(filename=sftp_private_key, password=passphrase)
@@ -33,13 +36,18 @@ def on_message(client, userdata, msg):
             sftp.get(command['remote_path'], command['local_path'])
             sftp.close()
             ssh.close()
+            print(f"File downloaded successfully to {command['local_path']}")
 
+            # Reading and sending the file content to the IoT device
             with open(command['local_path'], 'rb') as file:
                 file_content = file.read()
                 client.publish(file_transfer_topic, file_content)
-                print("File content sent to IoT device.")
+                print("File content sent to the IoT device.")
+
         else:
+            print("Invalid command received.")
             client.publish(response_topic, "Invalid command.")
+
     except Exception as e:
         print(f"Error: {str(e)}")
         client.publish(response_topic, f"Error: {str(e)}")

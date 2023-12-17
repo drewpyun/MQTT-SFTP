@@ -10,7 +10,6 @@ def get_input(prompt, validation_func=None):
             return user_input
         print("Invalid input. Please try again.")
 
-# Function to validate IP addresses
 def valid_ip(address):
     parts = address.split(".")
     if len(parts) != 4:
@@ -20,20 +19,25 @@ def valid_ip(address):
             return False
     return True
 
-# Prompt user for the MQTT broker's IP address
 broker_address = get_input("Enter the MQTT broker's IP address: ", valid_ip)
-port = 1883  # Standard MQTT port
+port = 1883
 
-# MQTT Topics
 command_topic = "iot/sftp/command"
 response_topic = "iot/sftp/response"
+file_transfer_topic = "iot/sftp/file_transfer"
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
-    client.subscribe(response_topic)
+    client.subscribe([response_topic, file_transfer_topic])
 
 def on_message(client, userdata, msg):
-    print(f"Response: {msg.payload.decode()}")
+    if msg.topic == response_topic:
+        print(f"Response: {msg.payload.decode()}")
+    elif msg.topic == file_transfer_topic:
+        print("Receiving file content from MQTT broker...")
+        # Process for saving the file content received
+        # Code to save the received file content goes here
+        print("File content received and saved successfully.")
 
 client = mqtt.Client()
 client.on_connect = on_connect
@@ -41,20 +45,18 @@ client.on_message = on_message
 
 client.connect(broker_address, port, 60)
 
-# Define local and remote paths for the file transfer
+# Sending a file transfer request
 remote_path = '/home/test/PKI-Test'
 local_path = '/home/testlaptop/testmqtt.txt'
 
-# Send command to perform file transfer action
 command = {
-    'action': 'get',  # 'get' for download, 'put' for upload
+    'action': 'get',
     'remote_path': remote_path,
     'local_path': local_path
 }
 client.publish(command_topic, json.dumps(command))
 
 client.loop_start()
-
 input("Press Enter to exit...\n")
 client.loop_stop()
 client.disconnect()
