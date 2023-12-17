@@ -2,15 +2,23 @@ import getpass
 import paramiko
 import paho.mqtt.client as mqtt
 import json
-import os
 
+def get_input(prompt, validation_func=None):
+    while True:
+        user_input = input(prompt)
+        if not validation_func or validation_func(user_input):
+            return user_input
+        print("Invalid input. Please try again.")
+
+# MQTT Broker Configuration
 broker_address = "localhost"
 port = 1883
 
-sftp_host = '10.0.1.194'
+# SFTP Server Configuration
+sftp_host = get_input("Enter the SFTP server IP address: ")
 sftp_port = 22
-sftp_username = 'test'
-sftp_private_key = '/home/testlaptop/.ssh/id_rsa_mqtt'
+sftp_username = get_input("Enter the SFTP username: ")
+sftp_private_key = get_input("Enter the path to the private key: ")
 
 command_topic = "iot/sftp/command"
 response_topic = "iot/sftp/response"
