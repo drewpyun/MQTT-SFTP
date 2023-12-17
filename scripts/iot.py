@@ -28,7 +28,7 @@ file_transfer_topic = "iot/sftp/file_transfer"
 
 def on_connect(client, userdata, flags, rc):
     print("Connected with result code " + str(rc))
-    client.subscribe([response_topic, file_transfer_topic])
+    client.subscribe([(response_topic, 0), (file_transfer_topic, 0)])
 
 def on_message(client, userdata, msg):
     if msg.topic == response_topic:
