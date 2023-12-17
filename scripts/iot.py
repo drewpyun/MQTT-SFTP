@@ -34,10 +34,11 @@ def on_message(client, userdata, msg):
     if msg.topic == response_topic:
         print(f"Response: {msg.payload.decode()}")
     elif msg.topic == file_transfer_topic:
-        print("Receiving file content from MQTT broker...")
-        # Process for saving the file content received
-        # Code to save the received file content goes here
-        print("File content received and saved successfully.")
+        file_path = '/dynamic/path/where/you/want/to/save/file.txt' # Replace with dynamic path
+        with open(file_path, 'wb') as file:
+            file.write(msg.payload)
+            print(f"File saved to '{file_path}'")
+
 
 client = mqtt.Client()
 client.on_connect = on_connect
