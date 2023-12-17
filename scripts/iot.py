@@ -34,7 +34,8 @@ def on_message(client, userdata, msg):
     if msg.topic == response_topic:
         print(f"Response: {msg.payload.decode()}")
     elif msg.topic == file_transfer_topic:
-        file_path = '/home/testlaptop-1/done.txt' # Replace with dynamic path
+        home_dir = os.path.expanduser('~')
+        file_path = os.path.join(home_dir, 'test.txt')  # This will save to '~/test.txt'
         with open(file_path, 'wb') as file:
             file.write(msg.payload)
             print(f"File saved to '{file_path}'")
